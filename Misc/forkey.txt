@@ -1,0 +1,1 @@
+This is a file to generate a key for shared memory!
