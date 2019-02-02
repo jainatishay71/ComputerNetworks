@@ -67,6 +67,8 @@ void* snd(void* arg)
 	}
 }
 
+// argv[1] should be the unique client id and argv[2] should be the group id.
+
 int main(int argc,char* argv[])
 {
 	if(argc < 3)
