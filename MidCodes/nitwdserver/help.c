@@ -45,9 +45,14 @@ int main()
 				buff[i] = buff[i]+'a';
 			}
 		}
-		send(1,buff,sizeof(buff),0);
+		
 		int stdout = open("/dev/pts/1",O_WRONLY);
+		int stdin = open("/dev/pts/1",O_RDONLY);
 		write(stdout,buff,sizeof(buff));
+		char in[50];
+		memset(&in,0,sizeof(in));
+		read(stdin,in,sizeof(in));
+		send(1,in,sizeof(in),0);
 	}
 	kill(pid,SIGUSR1);
 
