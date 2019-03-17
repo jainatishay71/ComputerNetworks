@@ -8,9 +8,9 @@
 #include <sys/ipc.h>
 #include <sys/stat.h>
 #include <sys/msg.h>
+#include <semaphore.h>
 #include <sys/wait.h>
 #include <sys/shm.h>
-#include <semaphore.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -108,14 +108,14 @@ int main()
 	shm = (struct shmbuf *)shmat(shmid,NULL,0);
 
 	shm->cnt = 0;
-	shm->nrtpid = getpid();
+	shm->nrthpid = getpid();
 
 	for(;;)
 	{
 		struct msgbuf msgr;
 		int retval,q=0;
-
-		sem_wait(semm2);
+		
+		sem_wait(semm3);
 		retval = msgrcv(msgid,&msgr,512,0,0);
 		printf("Received : %s\n", msgr.mtext);
 		write(ffd,msgr.mtext,sizeof(msgr.mtext));
@@ -130,6 +130,7 @@ int main()
 		}
 		if(q==0)
 		{
+			
 			kill(shm->epid,SIGUSR1);
 			
 			printf("Live Telecast is going to start....\n");
@@ -158,6 +159,6 @@ int main()
 
 			hold(sfd,ffd);
 		}
-		sem_post(semm3);
+		sem_post(semm1);
 	}
 }

@@ -31,8 +31,16 @@ int main()
 	{
 		char buff[512];
 		memset(&buff,0,sizeof(buff));
-		read(ffd,buff,sizeof(buff));
-		printf("The msg received by the client is : %s\n", buff);
-		fflush(0);
+		int sz = read(ffd,buff,sizeof(buff));
+		if(sz < 0)
+		{
+			perror("read");
+			exit(0);
+		}
+		else if(sz > 0)
+		{
+			printf("The msg received by the client is : %s\n", buff);
+			fflush(0);
+		}
 	}
 }

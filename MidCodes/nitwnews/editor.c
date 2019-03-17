@@ -27,6 +27,7 @@ struct shmbuf
 	int epid;
 	int nropid;
 	int nrtpid;
+	int nrthpid;
 	int cnt;
 };
 
@@ -45,7 +46,7 @@ int main()
 {
 	signal(SIGUSR1,inccnt);
 
-	int msgid,flag=1;
+	int msgid,flag=2;
 	key_t key = ftok("msgkey.txt",47);
 	msgid = msgget(key,IPC_CREAT|0666);
 	if(msgid < 0)
@@ -118,10 +119,6 @@ int main()
 				
 				int retval;
 				msgr.mtype = flag;
-				if(flag==1)
-					flag=2;
-				else
-					flag=1;
 				retval = msgsnd(msgid,&msgr,sizeof(msgr.mtext),0);
 				if(retval < 0)
 				{
@@ -153,10 +150,6 @@ int main()
 				
 				int retval;
 				msgr.mtype = flag;
-				if(flag==1)
-					flag=2;
-				else
-					flag=1;
 				retval = msgsnd(msgid,&msgr,sizeof(msgr.mtext),0);
 				if(retval < 0)
 				{
@@ -188,10 +181,6 @@ int main()
 
 				int retval;
 				msgr.mtype = flag;
-				if(flag==1)
-					flag=2;
-				else
-					flag=1;
 				retval = msgsnd(msgid,&msgr,sizeof(msgr.mtext),0);
 				if(retval < 0)
 				{

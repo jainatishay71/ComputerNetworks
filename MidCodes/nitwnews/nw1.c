@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
+#include <semaphore.h>
 #include <sys/shm.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -18,18 +19,7 @@
 #define SHSIZE 1024
 #define PATH "SFIFO"
 
-void resume()
-{
-	printf("Resuming News Reading!\n");
-}
-
-void fromnw2()
-{
-	printf("Received Signal from nw2\n");
-	pause();
-}
-
-void hold(int sfd)
+void hold(int sfd,int ffd)
 {
 	for(;;)
 	{
@@ -48,6 +38,8 @@ void hold(int sfd)
 				return;
 			}
 			printf("News : %s\n", news);
+			write(ffd,news,sizeof(news));
+			fflush(0);
 		}
 	}
 }
@@ -63,11 +55,35 @@ struct shmbuf
 	int epid;
 	int nropid;
 	int nrtpid;
+	int nrthpid;
 	int cnt;
 };
 
 int main()
 {
+	sem_t *semm1 = sem_open("/semap1",0);
+	sem_t *semm2 = sem_open("/semap2",0);
+	sem_t *semm3 = sem_open("/semap3",0);
+
+	int a,b,c;
+	if(sem_getvalue(semm1,&a) < 0)
+	{
+		perror("sem_getvalue");
+		exit(0);
+	}
+	if(sem_getvalue(semm2,&b) < 0)
+	{
+		perror("sem_getvalue");
+		exit(0);
+	}
+	if(sem_getvalue(semm3,&c) < 0)
+	{
+		perror("sem_getvalue");
+		exit(0);
+	}
+
+	printf("%d %d %d\n", a,b,c);
+
 	mkfifo(PATH,0666);
 	int ffd = open(PATH,O_WRONLY);
 	if(ffd < 0)
@@ -75,9 +91,6 @@ int main()
 		perror("open");
 		exit(0);
 	}
-
-	signal(SIGUSR2,fromnw2);
-	signal(SIGUSR1,resume);
 
 	int msgid;
 	key_t key = ftok("msgkey.txt",47);
@@ -101,7 +114,9 @@ int main()
 	{
 		struct msgbuf msgr;
 		int retval,q=0;
-		retval = msgrcv(msgid,&msgr,512,1,0);
+		
+		sem_wait(semm1);
+		retval = msgrcv(msgid,&msgr,512,0,0);
 		printf("Received : %s\n", msgr.mtext);
 		write(ffd,msgr.mtext,sizeof(msgr.mtext));
 		fflush(0);
@@ -115,8 +130,8 @@ int main()
 		}
 		if(q==0)
 		{
-			kill(shm->nrtpid,SIGUSR1);
 			kill(shm->epid,SIGUSR1);
+
 			printf("Live Telecast is going to start....\n");
 			int sfd;
 			sfd = socket(AF_INET,SOCK_STREAM,0);
@@ -141,8 +156,8 @@ int main()
 			else
 				printf("Connection Successful!\n");
 
-			hold(sfd);
-			kill(shm->nrtpid,SIGUSR2);
+			hold(sfd,ffd);
 		}
+		sem_post(semm2);
 	}
 }
