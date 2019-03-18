@@ -19,8 +19,19 @@ int sfd;
 
 void *serve(void *arg)
 {
-	int *val = (int *)arg;
-	int nsfd = *val;
+	struct sockaddr_in cliaddr;
+	memset((struct sockaddr_in *)&cliaddr,0,sizeof(cliaddr));
+	int sz,nsfd;
+	sz = sizeof(cliaddr);
+	nsfd = accept(sfd,(struct sockaddr *)&cliaddr,&sz);
+	if(nsfd < 0)
+	{
+		perror("accept");
+		exit(0);
+	}
+	else
+		printf("Accepted Successfully!\n");
+	
 	for(;;)
 	{
 		char buff[50];
@@ -56,78 +67,21 @@ void *serve(void *arg)
 
 void sig_handler()
 {
-	int nsfd,sz;
-	struct sockaddr_in cliaddr;
-	memset((struct sockaddr_in *)&cliaddr,0,sizeof(cliaddr));
-
-	sz = sizeof(cliaddr);
-	nsfd = accept(sfd,(struct sockaddr *)&cliaddr,&sz);
-	if(nsfd < 0)
-	{
-		perror("accept");
-		exit(0);
-	}
-	else
-		printf("Server Acception Successful\n");
 
 	pthread_t th;
-	pthread_create(&th,NULL,serve,(void *)&nsfd);
+	pthread_create(&th,NULL,serve,NULL);
 }
 
 int main(int argc,char *argv[])
 {
 	signal(SIGUSR1,sig_handler);
 
-	int port = atoi(argv[0]);
-	int nsfd,sz;
-	struct sockaddr_in servaddr,cliaddr;
-
-	memset((struct sockaddr_in *)&servaddr,0,sizeof(servaddr));
-
-	sfd = socket(AF_INET,SOCK_STREAM,0);
-	if(sfd < 0)
-	{
-		perror("socket");
-		exit(0);
-	}
-	else
-		printf("Socket Created Successfully!\n");
-
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(port);
-	servaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-	if(bind(sfd,(struct sockaddr *)&servaddr,sizeof(servaddr))!=0)
-	{
-		perror("bind");
-		exit(0);
-	}
-	else
-		printf("Socket Binded Successfully!\n");
-
-	if(listen(sfd,BACKLOG)!=0)
-	{
-		perror("listen");
-		exit(0);
-	}
-	else
-		printf("Socket Listening..!\n");
-
+	sfd = atoi(argv[0]);
+	printf("sfd received is : %d\n", sfd);
 	for(;;)
 	{
-		memset((struct sockaddr_in *)&cliaddr,0,sizeof(cliaddr));
-
-		sz = sizeof(cliaddr);
-		nsfd = accept(sfd,(struct sockaddr *)&cliaddr,&sz);
-		if(nsfd < 0)
-		{
-			perror("accept");
-			exit(0);
-		}
-		else
-			printf("Server Acception Successful\n");
-
 		pthread_t th;
-		pthread_create(&th,NULL,serve,(void *)&nsfd);
+		pthread_create(&th,NULL,serve,NULL);
+		pthread_join(th,NULL);
 	}
 }

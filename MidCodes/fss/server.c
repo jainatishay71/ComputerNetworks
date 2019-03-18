@@ -114,38 +114,37 @@ int main()
                         strcat(one.path,tmp);
                     }
                 }
-                strcat(services,one.portno);
-                strcat(services,",");
 
-    // 			int tport = atoi(one.portno);
-    // 			arrsfd[cnt] = socket(AF_INET,SOCK_STREAM,0);
-    // 			if(arrsfd[cnt] < 0)
-    // 			{
-    // 				perror("socket");
-    // 				exit(0);
-    // 			}
-    // 			else
-    // 				printf("New Socket Created!\n");
+    			int tport = atoi(one.portno),tsfd;
+    			arrsfd[cnt] = socket(AF_INET,SOCK_STREAM,0);
+    			tsfd = arrsfd[cnt];
+    			if(arrsfd[cnt] < 0)
+    			{
+    				perror("socket");
+    				exit(0);
+    			}
+    			else
+    				printf("New Socket Created!\n");
 
-    // 			servaddr[cnt].sin_family = AF_INET;
-			 //    servaddr[cnt].sin_port = htons(tport);
-			 //    servaddr[cnt].sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    			servaddr[cnt].sin_family = AF_INET;
+			    servaddr[cnt].sin_port = htons(tport);
+			    servaddr[cnt].sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
-    // 			if(bind(arrsfd[cnt],(struct sockaddr *)&servaddr[cnt],sizeof(servaddr[cnt])) < 0)
-    // 			{
-    // 				perror("bind");
-    // 				exit(0);
-    // 			}
-    // 			else
-    // 				printf("New Socket Binded Successfully!\n");
+    			if(bind(arrsfd[cnt],(struct sockaddr *)&servaddr[cnt],sizeof(servaddr[cnt])) < 0)
+    			{
+    				perror("bind");
+    				exit(0);
+    			}
+    			else
+    				printf("New Socket Binded Successfully!\n");
 
-    // 			if(listen(arrsfd[cnt],BACKLOG)!=0)
-				// {
-				// 	perror("listen");
-				// 	exit(0);
-				// }
-				// else
-				// 	printf("New Socket Listening..!\n");
+    			if(listen(arrsfd[cnt],BACKLOG)!=0)
+				{
+					perror("listen");
+					exit(0);
+				}
+				else
+					printf("New Socket Listening..!\n");
 
 
     			int c = fork();
@@ -154,29 +153,31 @@ int main()
     				printf("Inside Child\n");
     				// close(arrsfd[cnt]);
     				char *argv[] = {"hello",NULL};
-    				argv[0] = one.portno;
+    				char tsfds[50];
+    				sprintf(tsfds,"%d",tsfd);
+    				argv[0] = tsfds;
     				if(execv(one.path,argv) < 0)
     				{
     					perror("execv");
     					exit(0);
     				}
     			}
-    			// else
-    			// {
-    			// 	cpid[cnt] = c;
-    			// 	cnt++;
-    			// }
+    			else
+    			{
+    				cpid[cnt] = c;
+    				cnt++;
+    			}
     		}
-    		// else
-    		// {
-    		// 	for(int i=1;i<cnt;i++)
-    		// 	{
-    		// 		if(FD_ISSET(arrsfd[i],&readfds))
-    		// 		{
-    		// 			kill(cpid[i],SIGUSR1);
-    		// 		}
-    		// 	}
-    		// }
+    		else
+    		{
+    			for(int i=1;i<cnt;i++)
+    			{
+    				if(FD_ISSET(arrsfd[i],&readfds))
+    				{
+    					kill(cpid[i],SIGUSR1);
+    				}
+    			}
+    		}
 
     		// for enquiry
 
