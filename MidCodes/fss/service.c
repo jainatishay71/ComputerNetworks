@@ -77,7 +77,6 @@ int main(int argc,char *argv[])
 	signal(SIGUSR1,sig_handler);
 
 	sfd = atoi(argv[0]);
-	printf("sfd received is : %d\n", sfd);
 	for(;;)
 	{
 		pthread_t th;
